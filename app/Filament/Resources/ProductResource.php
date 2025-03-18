@@ -33,6 +33,18 @@ class ProductResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-s-queue-list';
     protected static SubNavigationPosition $subNavigationPosition = SubNavigationPosition::End;
+
+    /**
+     * Customize the Eloquent query for retrieving products
+     * This applies for vendor scope to ensure that only products
+     * created by the authenticated vendor are retrieved.
+     * @return Builder
+     */
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->forVendor();
+    }
+
     public static function form(Form $form): Form
     {
         return $form
