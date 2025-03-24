@@ -7,8 +7,6 @@ use App\ProductVariationTypesEnum;
 use Filament\Actions;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Section;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Resources\Pages\EditRecord;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
@@ -66,8 +64,8 @@ class ProductVariations extends EditRecord
             return $data; // Prevents null errors
         }
         // Retrieve variations from the record and convert them to an array
-        $variations = $this->record->variations ? $this->record->variations->toArray() : [];
-        // Merge the existing variations withe the variation types
+        $variations = $this->record->variations->toArray();
+        // Merge the existing variations with the variation types
         $data['variations'] = $this->mergeCartesianWithExisting($this->record->variationTypes, $variations);
         // return the modified data array
         return $data;
@@ -149,7 +147,6 @@ class ProductVariations extends EditRecord
     {
         // Initialize an array to hold the formatted data
         $formattedData = [];
-
         // loop through each variation to structure it
         foreach ($data['variations'] as $variation) {
             $variationTypeOptionIds = [];
@@ -161,7 +158,6 @@ class ProductVariations extends EditRecord
 
             // Prepare the data structure for the database
             $formattedData[] = [
-                'id' => $variation['id'],
                 'variation_type_option_ids' => $variationTypeOptionIds,
                 'quantity' => $quantity,
                 'price' => $price
@@ -176,12 +172,17 @@ class ProductVariations extends EditRecord
         // Extract variations data from the request and remove it from the main data array
         $variations = $data['variations'];
         unset($data['variations']); // Remove variations to prevent accidental on the Product model 
-
+        $variations = collect($variations)->map(function ($variation) {
+            return [
+                'variation_type_option_ids' => json_encode($variation['variation_type_option_ids']),
+                'quantity' => $variation['quantity'],
+                'price' => $variation['price']
+            ];
+        })->toArray();
         // update the record with remaining data excluding the variations
         $record->update($data);
         $record->variations()->delete(); // Delete old variations and replace them with new ones
-        $record->variations()->upsert($variations, ['id'], ['variation_type_option_ids', 'quantity', 'price']);
-
+        $record->variations()->upsert($variations, ['id'], ['variation_type_option_ids', 'quantity', 'price']);        
         return $record;
     }
 }

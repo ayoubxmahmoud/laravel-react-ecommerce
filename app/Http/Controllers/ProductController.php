@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\ProductListResource;
+use App\Http\Resources\ProductResource;
 use App\Models\Product;
-use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class ProductController extends Controller
@@ -20,8 +20,14 @@ class ProductController extends Controller
         ]);
     }
 
-    public function show()
+    public function show(Product $product)
     {
-        
+        $product->load('variations'); // Ensure variations are loaded
+        return Inertia::render('Product/Show', [
+            // Wrap the product in a ProductResource to ensure a structured API Response
+            'product' => new ProductResource($product),
+            // Retrieve variation options from the request, defaulting to an empty array if none 
+            'variationOptions' => request('options', [])
+        ]);
     }
 }

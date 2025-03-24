@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Filament\Resources\ProductResource\Pages\ProductVariations;
 use App\ProductStatusEnum;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
@@ -15,9 +14,6 @@ class Product extends Model implements HasMedia
 {
     use InteractsWithMedia;
 
-    protected $casts = [
-        'variations' => 'array'
-    ];
     public function registerMediaConversions(?Media $media = null): void
     {
         $this->addMediaConversion('thumb')
@@ -60,6 +56,6 @@ class Product extends Model implements HasMedia
 
     public function variations()
     {
-        return $this->hasMany(ProductVariation::class, 'product_id');
+        return $this->hasMany( ProductVariation::class, 'product_id');
     }
 }
