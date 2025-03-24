@@ -1,12 +1,12 @@
 import Carousel from "@/Components/core/Carousel";
 import CurrencyFormatter from "@/Components/core/CurrencyFormatter";
 import { arraysAreEqual } from "@/helper";
-import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
+import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout"; // Layout wrapper for authenticated users
 import { Head, router, useForm, usePage } from "@inertiajs/react";
 import { useEffect, useMemo, useState } from "react";
 
 const Show = ({ product, variationOptions }) => {
-
+    // Initialize form state with default values
     const form = useForm({
         option_ids: {},
         quantity: 1,
@@ -14,8 +14,10 @@ const Show = ({ product, variationOptions }) => {
     });
 
     const { url } = usePage();
+    // State to store the selected product variations
     const [selectedOptions, setSelectedOptions] = useState([]);
 
+    // Computed images to display based on the selected options
     const images = useMemo(() => {
         for (let typeId in selectedOptions) {
             const option = selectedOptions[typeId];
@@ -23,7 +25,7 @@ const Show = ({ product, variationOptions }) => {
         }
         return product.data.images;
     }, [product, selectedOptions]);
-
+    // Compute price and quantity based on the selected options
     const computedProduct = useMemo(() => {
         const selectedOptionIds = Object.values(selectedOptions)
             .map((op) => op.id)
@@ -35,7 +37,7 @@ const Show = ({ product, variationOptions }) => {
                     price: variation.price,
                     quantity:
                         variation.quantity === null
-                            ? Number.MAX_VALUE
+                            ? Number.MAX_VALUE // Unlimited stock
                             : variation.quantity,
                 };
             }
@@ -53,18 +55,21 @@ const Show = ({ product, variationOptions }) => {
                 type.id,
                 type.options.find((op) => op.id === selectedOptionId) ||
                     type.options[0],
-                false
+                false // Avoid updating router on initial load
             );
         }
     }, []);
+    // Helper function to map selected options to option ids
     const getOptionIdsMap = (newOptions) => {
         return Object.fromEntries(
             Object.entries(newOptions).map(([a, b]) => [a, b.id])
         );
     };
-
+    // function to handle option selection
     const chooseOption = (typeId, option, updatedRouter = true) => {
         setSelectedOptions((prevSelectedOptions) => {
+            // Create a new state object by spreading the previous selected options
+            // Add new option based on the given typeId and option
             const newOptions = {
                 ...prevSelectedOptions,
                 [typeId]: option,
@@ -72,21 +77,22 @@ const Show = ({ product, variationOptions }) => {
             if (updatedRouter) {
                 router.get(
                     url,
-                    { options: getOptionIdsMap(newOptions) },
+                    { options: getOptionIdsMap(newOptions) },// Convert selected options to an ID map
                     {
-                        preserveScroll: true,
-                        preserveState: true,
+                        preserveScroll: true,// Prevents the page from scrolling to the top on navigation
+                        preserveState: true, // Maintains the existing state in the app
                     }
                 );
             }
             return newOptions;
         });
     };
-
+    // Handle quantity change
     const onQuantityChange = (ev) => {
         form.setData("quantity", parseInt(ev.target.value));
     };
 
+    // Function to add product to cart
     const addToCart = () => {
         form.post(route("cart.store", product.data.id), {
             preserveScroll: true,
@@ -96,6 +102,7 @@ const Show = ({ product, variationOptions }) => {
             },
         });
     };
+    // Render product variation options (Image/Radio types)
     const renderProductVariationTypes = () => {
         return product.data.variationTypes.map((type, i) => (
             <div key={type.id}>
@@ -149,7 +156,7 @@ const Show = ({ product, variationOptions }) => {
             </div>
         ));
     };
-
+    // Render quantity selector and add-to-cart button
     const renderAddToCartButton = () => {
         return (
             <div className="flex mb-8 gap-4">
@@ -172,7 +179,7 @@ const Show = ({ product, variationOptions }) => {
             </div>
         );
     };
-
+    // Update form data when selected options change
     useEffect(() => {
         const idsMap = Object.fromEntries(
             Object.entries(selectedOptions).map(([typeId, option]) => [
