@@ -4,24 +4,59 @@ import Dropdown from '@/Components/core/Dropdown';
 import NavLink from '@/Components/core/NavLink';
 import ResponsiveNavLink from '@/Components/core/ResponsiveNavLink';
 import { Link, usePage } from '@inertiajs/react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export default function AuthenticatedLayout({ header, children }) {
-    const user = usePage().props.auth.user;
-
+    const props = usePage().props;
+    const user = props.auth.user;
+    const [successMessages, setSuccessMessages] = useState([]);
+    const timeoutRefs = useRef({});
     const [showingNavigationDropdown, setShowingNavigationDropdown] =
         useState(false);
+    useEffect(() => {
+        if (props.success.message) {
+            const newMessage = {
+                ...props.success,
+                id: props.success.time, // Use time as unique identifier
+            };
 
+            // Add the new message to the list
+            setSuccessMessages((prevMessages) => [newMessage, ...prevMessages]);
+
+            // Set timeout for the specific message so it disappears after 5 seconds
+            const timeoutId = setTimeout(() => {
+                // Remove the message with the matching ID from the success messages state
+                setSuccessMessages((prevMessages) => 
+                    prevMessages.filter((msg) => msg.id !== newMessage.id)
+                );
+                // Clean up the timeout reference of the new message from the timeoutRefs object
+                delete timeoutRefs.current[newMessage.id];
+            }, 5000);
+
+            // Store the timeout ID in the Ref
+            timeoutRefs.current[newMessage.id] = timeoutId;
+        }
+    }, [props.success]);
     return (
         <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
             <Navbar />
 
-            {header && (
-                <header className="bg-white shadow dark:bg-gray-800">
-                    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-                        {header}
+            {props.error && (
+                <div className="container mx-auto px-8 mt-8">
+                    <div className="alert alert-error">
+                        {props.error}
                     </div>
-                </header>
+                </div>
+            )}
+
+            {successMessages.length > 0 && (
+                <div className="toast toast-top toast-end z-[1000] mt-16">
+                    {successMessages.map((msg) => (
+                        <div className="alert alert-success" key={msg.id}>
+                            <span>{msg.message}</span>
+                        </div>
+                    ))}
+                </div>
             )}
 
             <main>{children}</main>

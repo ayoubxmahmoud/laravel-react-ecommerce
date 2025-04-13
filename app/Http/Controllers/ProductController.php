@@ -12,7 +12,7 @@ class ProductController extends Controller
     public function home()
     {
         $products = Product::query()
-            ->published()
+            ->forWebsite()
             ->paginate(12);
         // Render the 'Home' page with paginated product list
         return Inertia::render('Home', [

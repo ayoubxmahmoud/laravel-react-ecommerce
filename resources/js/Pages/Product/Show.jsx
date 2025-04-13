@@ -18,7 +18,7 @@ const Show = ({ product, variationOptions }) => {
     const [selectedOptions, setSelectedOptions] = useState([]);
 
     // Computed images to display based on the selected options
-    const images = useMemo(() => {
+    const images = useMemo(() => {        
         for (let typeId in selectedOptions) {
             const option = selectedOptions[typeId];
             if (option?.images?.length > 0) return option.images;
@@ -51,12 +51,12 @@ const Show = ({ product, variationOptions }) => {
     useEffect(() => {
         for (let type of product.data.variationTypes) {
             const selectedOptionId = variationOptions[type.id];
+            
             chooseOption(
                 type.id,
-                type.options.find((op) => op.id === selectedOptionId) ||
-                    type.options[0],
+                type.options.find((op) => op.id === Number(selectedOptionId)) || type.options[0],
                 false // Avoid updating router on initial load
-            );
+            );            
         }
     }, []);
     // Helper function to map selected options to option ids
@@ -66,7 +66,7 @@ const Show = ({ product, variationOptions }) => {
         );
     };
     // function to handle option selection
-    const chooseOption = (typeId, option, updatedRouter = true) => {
+    const chooseOption = (typeId, option, updatedRouter = true) => {                
         setSelectedOptions((prevSelectedOptions) => {
             // Create a new state object by spreading the previous selected options
             // Add new option based on the given typeId and option
@@ -94,6 +94,7 @@ const Show = ({ product, variationOptions }) => {
 
     // Function to add product to cart
     const addToCart = () => {
+        console.log(product);
         form.post(route("cart.store", product.data.id), {
             preserveScroll: true,
             preserveState: true,
@@ -157,7 +158,7 @@ const Show = ({ product, variationOptions }) => {
         ));
     };
     // Render quantity selector and add-to-cart button
-    const renderAddToCartButton = () => {
+    const renderAddToCartButton = () => {   
         return (
             <div className="flex mb-8 gap-4">
                 <select

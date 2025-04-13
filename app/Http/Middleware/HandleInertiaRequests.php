@@ -2,6 +2,8 @@
 
 namespace App\Http\Middleware;
 
+use App\Http\Resources\AuthUserResource;
+use App\Services\CartService;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -29,11 +31,25 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $cartService = app(CartService::class);
+        $totalQuantity = $cartService->getTotalQuantity();
+        $totalPrice = $cartService->getTotalPrice();
+        $cartItems = $cartService->getCartItems();
+
         return [
             ...parent::share($request),
+            'csrf_token' => csrf_token(),
             'auth' => [
-                'user' => $request->user(),
+                'user' => $request->user() ? new AuthUserResource($request->user()) : null,
             ],
+            'success' => [
+                'message' => session('success'),
+                'time' => microtime(true)
+            ],
+            'error' => session('error'),
+            'totalPrice' => $totalPrice,
+            'totalQuantity' => $totalQuantity,
+            'miniCartItems' => $cartItems
         ];
     }
 }
