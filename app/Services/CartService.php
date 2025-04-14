@@ -18,10 +18,8 @@ class CartService
     protected const COOKIE_LIFETIME = 60 * 24 * 360;
     public function addItemToCart(Product $product, int $quantity = 1, $optionIds = null)
     {
-        if ($optionIds === null) {
-            $optionIds = $product->variationTypes
-                ->mapWithKeys(fn($type) => [$type->id => $type->options[0]?->id])
-                ->toArray();
+        if (!$optionIds) {
+            $optionIds = $product->getFirstOptionsMap();
         }
         $price = $product->getPriceForOptions($optionIds);
 

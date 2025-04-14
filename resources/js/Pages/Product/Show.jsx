@@ -2,7 +2,7 @@ import Carousel from "@/Components/core/Carousel";
 import CurrencyFormatter from "@/Components/core/CurrencyFormatter";
 import { arraysAreEqual } from "@/helper";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout"; // Layout wrapper for authenticated users
-import { Head, router, useForm, usePage } from "@inertiajs/react";
+import { Head, Link, router, useForm, usePage } from "@inertiajs/react";
 import { useEffect, useMemo, useState } from "react";
 
 const Show = ({ product, variationOptions }) => {
@@ -18,19 +18,19 @@ const Show = ({ product, variationOptions }) => {
     const [selectedOptions, setSelectedOptions] = useState([]);
 
     // Computed images to display based on the selected options
-    const images = useMemo(() => {        
+    const images = useMemo(() => {
         for (let typeId in selectedOptions) {
             const option = selectedOptions[typeId];
             if (option?.images?.length > 0) return option.images;
         }
-        return product.data.images;
+        return product.images;
     }, [product, selectedOptions]);
     // Compute price and quantity based on the selected options
     const computedProduct = useMemo(() => {
         const selectedOptionIds = Object.values(selectedOptions)
             .map((op) => op.id)
             .sort();
-        for (let variation of product.data.variations) {
+        for (let variation of product.variations) {
             const optionIds = variation.variation_type_option_ids.sort();
             if (arraysAreEqual(selectedOptionIds, optionIds)) {
                 return {
@@ -43,20 +43,21 @@ const Show = ({ product, variationOptions }) => {
             }
         }
         return {
-            price: product.data.price,
-            quantity: product.data.quantity,
+            price: product.price,
+            quantity: product.quantity,
         };
     }, [product, selectedOptions]);
 
     useEffect(() => {
-        for (let type of product.data.variationTypes) {
+        for (let type of product.variationTypes) {
             const selectedOptionId = variationOptions[type.id];
-            
+
             chooseOption(
                 type.id,
-                type.options.find((op) => op.id === Number(selectedOptionId)) || type.options[0],
+                type.options.find((op) => op.id === Number(selectedOptionId)) ||
+                    type.options[0],
                 false // Avoid updating router on initial load
-            );            
+            );
         }
     }, []);
     // Helper function to map selected options to option ids
@@ -66,7 +67,7 @@ const Show = ({ product, variationOptions }) => {
         );
     };
     // function to handle option selection
-    const chooseOption = (typeId, option, updatedRouter = true) => {                
+    const chooseOption = (typeId, option, updatedRouter = true) => {
         setSelectedOptions((prevSelectedOptions) => {
             // Create a new state object by spreading the previous selected options
             // Add new option based on the given typeId and option
@@ -77,9 +78,9 @@ const Show = ({ product, variationOptions }) => {
             if (updatedRouter) {
                 router.get(
                     url,
-                    { options: getOptionIdsMap(newOptions) },// Convert selected options to an ID map
+                    { options: getOptionIdsMap(newOptions) }, // Convert selected options to an ID map
                     {
-                        preserveScroll: true,// Prevents the page from scrolling to the top on navigation
+                        preserveScroll: true, // Prevents the page from scrolling to the top on navigation
                         preserveState: true, // Maintains the existing state in the app
                     }
                 );
@@ -95,7 +96,7 @@ const Show = ({ product, variationOptions }) => {
     // Function to add product to cart
     const addToCart = () => {
         console.log(product);
-        form.post(route("cart.store", product.data.id), {
+        form.post(route("cart.store", product.id), {
             preserveScroll: true,
             preserveState: true,
             onError: (err) => {
@@ -105,7 +106,7 @@ const Show = ({ product, variationOptions }) => {
     };
     // Render product variation options (Image/Radio types)
     const renderProductVariationTypes = () => {
-        return product.data.variationTypes.map((type, i) => (
+        return product.variationTypes.map((type, i) => (
             <div key={type.id}>
                 <b className="pr-4">{type.name}</b>
                 {type.type === "Image" && (
@@ -158,11 +159,11 @@ const Show = ({ product, variationOptions }) => {
         ));
     };
     // Render quantity selector and add-to-cart button
-    const renderAddToCartButton = () => {   
+    const renderAddToCartButton = () => {
         return (
             <div className="flex mb-8 gap-4">
                 <select
-                    value={form.data.quantity}
+                    value={form.quantity}
                     onChange={onQuantityChange}
                     className="select select-bordered w-full"
                 >
@@ -180,7 +181,7 @@ const Show = ({ product, variationOptions }) => {
             </div>
         );
     };
-    // Update form data when selected options change
+    // Update form when selected options change
     useEffect(() => {
         const idsMap = Object.fromEntries(
             Object.entries(selectedOptions).map(([typeId, option]) => [
@@ -190,17 +191,33 @@ const Show = ({ product, variationOptions }) => {
         );
         form.setData("option_ids", idsMap);
     }, [selectedOptions]);
-
+    
     return (
         <AuthenticatedLayout>
-            <Head title={product.data.title} />
+            <Head title={product.title} />
             <div className="container mx-auto p-8">
                 <div className="grid gap-8 grid-cols-1 lg:grid-cols-12">
                     <div className="col-span-7">
                         <Carousel images={images} />
                     </div>
                     <div className="col-span-5">
-                        <h1 className="text-2xl mb-8">{product.title}</h1>
+                        <h1 className="text-2xl">{product.title}</h1>
+                        <p className="mb-8">
+                            by{" "}
+                            <Link
+                                href={route(
+                                    "vendor.profile",
+                                    product.user.store_name
+                                )}
+                                className="hover:underline"
+                            >
+                                {product.user.store_name}
+                            </Link>
+                            &nbsp; in{" "}
+                            <Link href="/" className="hover:underline">
+                                {product.department.name}
+                            </Link>
+                        </p>
                         <div>
                             <div className="text-3xl font-semibold">
                                 <CurrencyFormatter
@@ -225,7 +242,7 @@ const Show = ({ product, variationOptions }) => {
                         <div
                             className="wysiwyg-output"
                             dangerouslySetInnerHTML={{
-                                __html: product.data.description,
+                                __html: product.description,
                             }}
                         ></div>
                     </div>
