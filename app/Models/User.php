@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Exception;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -11,6 +12,7 @@ use Spatie\Permission\Traits\HasRoles;
 use Stripe\Account;
 use Stripe\AccountLink;
 use Stripe\Stripe;
+use Stripe\Transfer;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -87,5 +89,23 @@ class User extends Authenticatable implements MustVerifyEmail
         ]);
 
         return $accountLink;
+    }
+
+    public function transfer($amount, $currency = 'usd')
+    {
+        if (!$this->stripe_account_id)
+        {
+            throw new Exception("Vendor doesn't have a connected stripe account.");
+        }
+        Stripe::setApiKey(config('app.stripe_secret_key'));
+        return Transfer::create([
+            'amount' => $amount,
+            'currency' => $currency,
+            'destination' => $this->stripe_account_id,
+            'description' => 'Monthly payout',
+            'metadata' => [
+                'vendor_name' => $this->vendor->store_name
+            ]
+        ]);
     }
 }
