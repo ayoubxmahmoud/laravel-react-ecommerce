@@ -214,7 +214,7 @@ const Show = ({ product, variationOptions }) => {
                                 {product.user.store_name}
                             </Link>
                             &nbsp; in{" "}
-                            <Link href="/" className="hover:underline">
+                            <Link href={ route('product.byDepartment', product.department.slug) } className="hover:underline">
                                 {product.department.name}
                             </Link>
                         </p>
