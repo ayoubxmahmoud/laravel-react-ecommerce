@@ -6,6 +6,8 @@ import { Head, Link, router, useForm, usePage } from "@inertiajs/react";
 import { useEffect, useMemo, useState } from "react";
 
 const Show = ({ product, variationOptions }) => {
+    const appName = usePage().props.appName;
+    
     // Initialize form state with default values
     const form = useForm({
         option_ids: {},
@@ -191,10 +193,34 @@ const Show = ({ product, variationOptions }) => {
         );
         form.setData("option_ids", idsMap);
     }, [selectedOptions]);
-    
+
     return (
         <AuthenticatedLayout>
-            <Head title={product.title} />
+            <Head>
+                <title>{product.title}</title>
+                <meta name="title" content={product.meta_title || product.title} />
+                <meta
+                    name="description"
+                    content={product.meta_description}
+                />
+                <link
+                    rel="canonical"
+                    href={route("product.show", product.slug)}
+                />
+
+                <meta property="og:title" content={product.title} />
+                <meta
+                    property="og:description"
+                    content={product.meta_description}
+                />
+                <meta property="og:image" content={images[0]?.small} />
+                <meta
+                    property="og:url"
+                    content={route("product.show", product.slug)}
+                />
+                <meta property="og:type" content="product" />
+                <meta property="og:site_name" content={appName} />
+            </Head>{" "}
             <div className="container mx-auto p-8">
                 <div className="grid gap-8 grid-cols-1 lg:grid-cols-12">
                     <div className="col-span-7">
@@ -214,7 +240,13 @@ const Show = ({ product, variationOptions }) => {
                                 {product.user.store_name}
                             </Link>
                             &nbsp; in{" "}
-                            <Link href={ route('product.byDepartment', product.department.slug) } className="hover:underline">
+                            <Link
+                                href={route(
+                                    "product.byDepartment",
+                                    product.department.slug
+                                )}
+                                className="hover:underline"
+                            >
                                 {product.department.name}
                             </Link>
                         </p>

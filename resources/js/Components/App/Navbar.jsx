@@ -4,21 +4,23 @@ import MiniCartDropdown from "./MiniCartDropdown";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 
 const Navbar = ({ selectedDepartment }) => {
-    const { auth, totalQuantity, totalPrice, miniCartItems, departments, keyword } =
-        usePage().props;
-    const { user } = auth;
+    // Destructure data coming from the server-side Inertia props
+    const { auth, totalQuantity, totalPrice, miniCartItems, departments, keyword } = usePage().props;
+    const { user } = auth; // Extract authenticated user info
 
+    // Initialize form state for the search bar using Inertia's useForm hook
     const searchForm = useForm({
         keyword: keyword || ''
     });
-
+    // Get the current url
     const {url} = usePage();
-
     const onSubmit = (e) => {
-        e.preventDefault();
+        e.preventDefault(); // prevent default form submission behavior 
+
+        // Send a Get request to the current URL with search data
         searchForm.get(url, {
-            preserveScroll: true,
-            preserveState: true
+            preserveScroll: true, // Keep current scroll position
+            preserveState: true //
         });
     }
     return (

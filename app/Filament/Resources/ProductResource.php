@@ -13,6 +13,7 @@ use App\RolesEnum;
 use Filament\Facades\Filament;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\RichEditor;
+use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
@@ -95,7 +96,13 @@ class ProductResource extends Resource
                             ->integer(),
                         Select::make('status')
                             ->options(ProductStatusEnum::labels())
-                            ->default(ProductStatusEnum::Draft->value)
+                            ->default(ProductStatusEnum::Draft->value),
+                        Section::make('SEO')
+                            ->collapsible()
+                            ->schema([
+                                TextInput::make('meta_title'),
+                                TextInput::make('meta_description')
+                            ])
                     ])
             ]);
     }
